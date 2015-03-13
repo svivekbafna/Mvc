@@ -154,8 +154,8 @@ namespace Microsoft.AspNet.Mvc.Razor
                     .Verifiable();
 
             var baseParser = new RazorParser(
-                codeParser: new CSharpCodeParser(),
-                markupParser: new HtmlMarkupParser(),
+                new CSharpCodeParser(),
+                new HtmlMarkupParser(),
                 tagHelperDescriptorResolver: resolver.Object);
             var parser = new TestableMvcRazorParser(baseParser, codeTrees, defaultInheritedChunks: new Chunk[0]);
 

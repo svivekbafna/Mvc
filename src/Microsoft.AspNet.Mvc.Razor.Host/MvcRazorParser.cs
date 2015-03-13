@@ -72,7 +72,6 @@ namespace Microsoft.AspNet.Mvc.Razor
             {
                 // All TagHelperDirectiveDescriptors created here have undefined source locations because the source 
                 // that created them is not in the same file.
-
                 var addTagHelperChunk = chunk as AddTagHelperChunk;
                 if (addTagHelperChunk != null)
                 {
@@ -108,8 +107,6 @@ namespace Microsoft.AspNet.Mvc.Razor
                         TagHelperDirectiveType.TagHelperPrefix);
 
                     descriptors.Add(descriptor);
-
-                    continue;
                 }
             }
 
@@ -147,19 +144,19 @@ namespace Microsoft.AspNet.Mvc.Razor
 
                 foreach (var descriptor in inheritedDescriptors)
                 {
-                    if (descriptor.DirectiveType != TagHelperDirectiveType.TagHelperPrefix)
-                    {
-                        mergedDescriptors.Add(descriptor);
-                    }
-                    else
+                    if (descriptor.DirectiveType == TagHelperDirectiveType.TagHelperPrefix)
                     {
                         // Always take the latest @tagHelperPrefix descriptor. Can only have 1 per page.
                         prefixDirectiveDescriptor = descriptor;
                     }
+                    else
+                    {
+                        mergedDescriptors.Add(descriptor);
+                    }
                 }
 
                 // We need to see if the provided descriptors contain a @tagHelperPrefix directive. If so, it 
-                // takes presedence and overrides any provided by the inheritedDescriptors. If not we need to add the 
+                // takes precedence and overrides any provided by the inheritedDescriptors. If not we need to add the 
                 // inherited @tagHelperPrefix directive back into the merged list.
                 if (prefixDirectiveDescriptor != null &&
                     !descriptors.Any(descriptor => descriptor.DirectiveType == TagHelperDirectiveType.TagHelperPrefix))
