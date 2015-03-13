@@ -109,6 +109,29 @@ namespace Microsoft.AspNet.Mvc.Core.Test.ActionResults
         }
 
         [Fact]
+        public async Task NoAcceptAndContentTypeHeaders_DoNotAllowOverridingRequestContentType_DoesNotTakeEffect()
+        {
+            // Arrange
+            var expectedContentType = "application/json; charset=utf-8";
+
+            var input = 123;
+            var httpResponse = new DefaultHttpContext().Response;
+            httpResponse.Body = new MemoryStream();
+            var actionContext = CreateMockActionContext(httpResponse);
+
+            var result = new ObjectResult(input);
+            result.AllowOverridingRequestContentType = false;
+            result.ContentTypes = new List<MediaTypeHeaderValue>();
+            result.ContentTypes.Add(MediaTypeHeaderValue.Parse(expectedContentType));
+
+            // Act
+            await result.ExecuteResultAsync(actionContext);
+
+            // Assert
+            Assert.Equal(expectedContentType, httpResponse.ContentType);
+        }
+
+        [Fact]
         public async Task ObjectResult_WithSingleContentType_TheGivenContentTypeIsSelected()
         {
             // Arrange
@@ -651,7 +674,7 @@ namespace Microsoft.AspNet.Mvc.Core.Test.ActionResults
         [Theory]
         [InlineData(true)]
         [InlineData(false)]
-        public async Task ObjectResult_WithStringType_WritesTextPlainFormat(bool matchFormatterOnObjectType)
+        public async Task ObjectResult_WithStringType_WritesTextPlainFormat(bool allowOverridingRequestContentType)
         {
             // Arrange
             var expectedData = "Hello World!";
@@ -665,7 +688,7 @@ namespace Microsoft.AspNet.Mvc.Core.Test.ActionResults
             response.SetupGet(r => r.Body).Returns(responseStream);
 
             var mvcOptions = new MvcOptions();
-            mvcOptions.MatchFormatterOnObjectType = matchFormatterOnObjectType;
+            mvcOptions.AllowOverridingRequestContentType = allowOverridingRequestContentType;
             var actionContext = CreateMockActionContext(
                                     outputFormatters,
                                     response.Object,
@@ -683,11 +706,74 @@ namespace Microsoft.AspNet.Mvc.Core.Test.ActionResults
         }
 
         [Fact]
+        public async Task ObjectResult_WithSingleContentType_IgnoresAllowOverridingRequestContentType_Setting()
+        {
+            // Arrange
+            var mvcOptions = new MvcOptions();
+            mvcOptions.AllowOverridingRequestContentType = false;
+            var objectResult = new ObjectResult(new Person() { Name = "John" });
+            objectResult.ContentTypes.Add(new MediaTypeHeaderValue("application/json"));
+            var outputFormatters = new IOutputFormatter[] { new JsonOutputFormatter() };
+            var response = new Mock<HttpResponse>();
+            var responseStream = new MemoryStream();
+            response.SetupGet(r => r.Body).Returns(responseStream);
+            var expectedData = "{\"Name\":\"John\"}";
+
+            var actionContext = CreateMockActionContext(
+                                    outputFormatters,
+                                    response.Object,
+                                    requestAcceptHeader: "application/non-existing",
+                                    requestContentType: "application/non-existing",
+                                    mvcOptions: mvcOptions);
+
+            // Act
+            await objectResult.ExecuteResultAsync(actionContext);
+
+            // Assert
+            response.VerifySet(r => r.ContentType = "application/json; charset=utf-8");
+            responseStream.Position = 0;
+            var actual = new StreamReader(responseStream).ReadToEnd();
+            Assert.Equal(expectedData, actual);
+        }
+
+        [Fact]
+        public async Task ObjectResult_WithMultipleContentTypes_IgnoresAllowOverridingRequestContentType_Setting()
+        {
+            // Arrange
+            var mvcOptions = new MvcOptions();
+            mvcOptions.AllowOverridingRequestContentType = false;
+            var objectResult = new ObjectResult(new Person() { Name = "John" });
+            objectResult.ContentTypes.Add(new MediaTypeHeaderValue("application/foo"));
+            objectResult.ContentTypes.Add(new MediaTypeHeaderValue("application/json"));
+            var outputFormatters = new IOutputFormatter[] { new JsonOutputFormatter() };
+            var response = new Mock<HttpResponse>();
+            var responseStream = new MemoryStream();
+            response.SetupGet(r => r.Body).Returns(responseStream);
+            var expectedData = "{\"Name\":\"John\"}";
+
+            var actionContext = CreateMockActionContext(
+                                    outputFormatters,
+                                    response.Object,
+                                    requestAcceptHeader: "application/non-existing",
+                                    requestContentType: "application/non-existing",
+                                    mvcOptions: mvcOptions);
+
+            // Act
+            await objectResult.ExecuteResultAsync(actionContext);
+
+            // Assert
+            response.VerifySet(r => r.ContentType = "application/json; charset=utf-8");
+            responseStream.Position = 0;
+            var actual = new StreamReader(responseStream).ReadToEnd();
+            Assert.Equal(expectedData, actual);
+        }
+
+        [Fact]
         public async Task ObjectResult_DoesNot_MatchOnObjectType_BasedOnMvcOptions()
         {
             // Arrange
             var mvcOptions = new MvcOptions();
-            mvcOptions.MatchFormatterOnObjectType = false;
+            mvcOptions.AllowOverridingRequestContentType = false;
             var objectResult = new ObjectResult(new Person() { Name = "John" });
             var outputFormatters = new IOutputFormatter[] { new JsonOutputFormatter() };
             var response = new Mock<HttpResponse>();
@@ -715,9 +801,9 @@ namespace Microsoft.AspNet.Mvc.Core.Test.ActionResults
         {
             // Arrange
             var mvcOptions = new MvcOptions();
-            mvcOptions.MatchFormatterOnObjectType = false;
+            mvcOptions.AllowOverridingRequestContentType = false;
             var objectResult = new ObjectResult(new Person() { Name = "John" });
-            objectResult.MatchFormatterOnObjectType = true;
+            objectResult.AllowOverridingRequestContentType = true;
             var outputFormatters = new IOutputFormatter[] { new JsonOutputFormatter() };
             var response = new Mock<HttpResponse>();
             var responseStream = new MemoryStream();

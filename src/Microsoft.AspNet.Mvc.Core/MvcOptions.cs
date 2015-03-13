@@ -144,10 +144,13 @@ namespace Microsoft.AspNet.Mvc
         public bool RespectBrowserAcceptHeader { get; set; }
 
         /// <summary>
-        /// Gets or sets a flag to enable content-negotiation to select a formatter based on object type.
+        /// Gets or sets a flag to enable content-negotiation to override formatter match based on
+        /// a request's Accept and Content-Type headers. If set to <c>true</c>, content-negotiation will
+        /// try to find the first formatter which can write the type of the object that is going to be 
+        /// serialized.
         /// <c>true</c>, by default.
         /// </summary>
-        public bool MatchFormatterOnObjectType { get; set; } = true;
+        public bool AllowOverridingRequestContentType { get; set; } = true;
 
         /// <summary>
         /// Gets a Dictionary of CacheProfile Names, <see cref="CacheProfile"/> which are pre-defined settings for

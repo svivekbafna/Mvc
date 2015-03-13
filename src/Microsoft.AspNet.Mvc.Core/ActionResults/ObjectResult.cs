@@ -39,9 +39,12 @@ namespace Microsoft.AspNet.Mvc
         public int? StatusCode { get; set; }
 
         /// <summary>
-        /// Gets or sets a flag to enable content-negotiation to select a formatter based on object type.
+        /// Gets or sets a flag to enable content-negotiation to override formatter match based on
+        /// a request's Accept and Content-Type headers. If set to <c>true</c>, content-negotiation will
+        /// try to find the first formatter which can write the type of the object that is going to be 
+        /// serialized.
         /// </summary>
-        public bool? MatchFormatterOnObjectType { get; set; }
+        public bool? AllowOverridingRequestContentType { get; set; }
 
         public override async Task ExecuteResultAsync(ActionContext context)
         {
@@ -103,7 +106,7 @@ namespace Microsoft.AspNet.Mvc
                 respectAcceptHeader = false;
             }
 
-            IEnumerable<MediaTypeHeaderValue> sortedAcceptHeaderMediaTypes = null;
+            IEnumerable<MediaTypeHeaderValue> sortedAcceptHeaderMediaTypes = new MediaTypeHeaderValue[] { };
             if (respectAcceptHeader)
             {
                 sortedAcceptHeaderMediaTypes = SortMediaTypeHeaderValues(incomingAcceptHeaderMediaTypes)
@@ -113,6 +116,13 @@ namespace Microsoft.AspNet.Mvc
             IOutputFormatter selectedFormatter = null;
             if (ContentTypes == null || ContentTypes.Count == 0)
             {
+                var requestContentType = formatterContext.ActionContext.HttpContext.Request.ContentType;
+
+                if (sortedAcceptHeaderMediaTypes.Count() == 0 && requestContentType == null)
+                {
+                    return SelectFormatterBasedOnTypeMatch(formatterContext, formatters);
+                }
+
                 if (respectAcceptHeader)
                 {
                     // Select based on sorted accept headers.
@@ -124,7 +134,6 @@ namespace Microsoft.AspNet.Mvc
 
                 if (selectedFormatter == null)
                 {
-                    var requestContentType = formatterContext.ActionContext.HttpContext.Request.ContentType;
 
                     // No formatter found based on accept headers, fall back on request contentType.
                     MediaTypeHeaderValue incomingContentType = null;
@@ -141,21 +150,11 @@ namespace Microsoft.AspNet.Mvc
 
                     // This would be the case when no formatter could write the type base on the
                     // accept headers and the request content type. Fallback on type based match.
-                    var matchFormatterOnObjectType = MatchFormatterOnObjectType ?? options.MatchFormatterOnObjectType;
-                    if (selectedFormatter == null && matchFormatterOnObjectType)
+                    var allowOverridingRequestContentType =
+                        AllowOverridingRequestContentType ?? options.AllowOverridingRequestContentType;
+                    if (selectedFormatter == null && allowOverridingRequestContentType)
                     {
-                        foreach (var formatter in formatters)
-                        {
-                            var supportedContentTypes = formatter.GetSupportedContentTypes(
-                                                                         formatterContext.DeclaredType,
-                                                                         formatterContext.Object?.GetType(),
-                                                                         contentType: null);
-
-                            if (formatter.CanWriteResult(formatterContext, supportedContentTypes?.FirstOrDefault()))
-                            {
-                                return formatter;
-                            }
-                        }
+                        return SelectFormatterBasedOnTypeMatch(formatterContext, formatters);
                     }
                 }
             }
@@ -192,6 +191,26 @@ namespace Microsoft.AspNet.Mvc
             }
 
             return selectedFormatter;
+        }
+
+        public virtual IOutputFormatter SelectFormatterBasedOnTypeMatch(
+            OutputFormatterContext formatterContext,
+            IEnumerable<IOutputFormatter> formatters)
+        {
+            foreach (var formatter in formatters)
+            {
+                var supportedContentTypes = formatter.GetSupportedContentTypes(
+                                                             formatterContext.DeclaredType,
+                                                             formatterContext.Object?.GetType(),
+                                                             contentType: null);
+
+                if (formatter.CanWriteResult(formatterContext, supportedContentTypes?.FirstOrDefault()))
+                {
+                    return formatter;
+                }
+            }
+
+            return null;
         }
 
         public virtual IOutputFormatter SelectFormatterUsingSortedAcceptHeaders(
