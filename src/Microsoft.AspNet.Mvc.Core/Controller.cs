@@ -667,7 +667,7 @@ namespace Microsoft.AspNet.Mvc
         {
             if (fileStream != null)
             {
-                Response.OnResponseCompleted(_ => fileStream.Dispose(), null);
+                Response.OnResponseCompleted(_ => fileStream.Dispose(), state: null);
             }
 
             return new FileStreamResult(fileStream, contentType) { FileDownloadName = fileDownloadName };

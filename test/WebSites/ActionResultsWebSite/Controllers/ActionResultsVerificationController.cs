@@ -95,6 +95,11 @@ namespace ActionResultsWebSite
             return HttpNotFound(CreateDummy());
         }
 
+        public IActionResult GetNotFoundObjectResultWithDisposableObject()
+        {
+            return HttpNotFound(CreateDisposableDummy());
+        }
+
         public DummyClass GetDummy(int id)
         {
             return CreateDummy();
@@ -107,6 +112,19 @@ namespace ActionResultsWebSite
                 SampleInt = 10,
                 SampleString = "Foo"
             };
+        }
+
+        private DisposableDummy CreateDisposableDummy()
+        {
+            return new DisposableDummy();
+        }
+
+        private class DisposableDummy : IDisposable
+        {
+            public void Dispose()
+            {
+                throw new Exception("Dispose called");
+            }
         }
     }
 }

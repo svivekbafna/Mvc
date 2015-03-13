@@ -428,8 +428,7 @@ namespace Microsoft.AspNet.Mvc.Test
         {
             // Arrange
             var mockHttpContext = new Mock<DefaultHttpContext>();
-            mockHttpContext.Setup(x => x.Response.OnResponseCompleted(It.IsAny<Action<object>>(), It.IsAny<object>()))
-                .Verifiable();
+            mockHttpContext.Setup(x => x.Response.OnResponseCompleted(It.IsAny<Action<object>>(), It.IsAny<object>()));
             var uri = new Uri("/test/url", UriKind.Relative);
 
             var controller = new TestableController()
@@ -516,8 +515,7 @@ namespace Microsoft.AspNet.Mvc.Test
         {
             // Arrange
             var mockHttpContext = new Mock<DefaultHttpContext>();
-            mockHttpContext.Setup(x => x.Response.OnResponseCompleted(It.IsAny<Action<object>>(), It.IsAny<object>()))
-                .Verifiable();
+            mockHttpContext.Setup(x => x.Response.OnResponseCompleted(It.IsAny<Action<object>>(), It.IsAny<object>()));
 
             var controller = new TestableController()
             {
@@ -600,8 +598,7 @@ namespace Microsoft.AspNet.Mvc.Test
         {
             // Arrange
             var mockHttpContext = new Mock<DefaultHttpContext>();
-            mockHttpContext.Setup(x => x.Response.OnResponseCompleted(It.IsAny<Action<object>>(), It.IsAny<object>()))
-                .Verifiable();
+            mockHttpContext.Setup(x => x.Response.OnResponseCompleted(It.IsAny<Action<object>>(), It.IsAny<object>()));
 
             var controller = new TestableController()
             {
@@ -717,8 +714,7 @@ namespace Microsoft.AspNet.Mvc.Test
         {
             // Arrange
             var mockHttpContext = new Mock<DefaultHttpContext>();
-            mockHttpContext.Setup(x => x.Response.OnResponseCompleted(It.IsAny<Action<object>>(), It.IsAny<object>()))
-                .Verifiable();
+            mockHttpContext.Setup(x => x.Response.OnResponseCompleted(It.IsAny<Action<object>>(), It.IsAny<object>()));
 
             var controller = new TestableController()
             {
@@ -787,8 +783,7 @@ namespace Microsoft.AspNet.Mvc.Test
         {
             // Arrange
             var mockHttpContext = new Mock<DefaultHttpContext>();
-            mockHttpContext.Setup(x => x.Response.OnResponseCompleted(It.IsAny<Action<object>>(), It.IsAny<object>()))
-                .Verifiable();
+            mockHttpContext.Setup(x => x.Response.OnResponseCompleted(It.IsAny<Action<object>>(), It.IsAny<object>()));
 
             var controller = new TestableController()
             {
@@ -843,8 +838,7 @@ namespace Microsoft.AspNet.Mvc.Test
         {
             // Arrange
             var mockHttpContext = new Mock<DefaultHttpContext>();
-            mockHttpContext.Setup(x => x.Response.OnResponseCompleted(It.IsAny<Action<object>>(), It.IsAny<object>()))
-                .Verifiable();
+            mockHttpContext.Setup(x => x.Response.OnResponseCompleted(It.IsAny<Action<object>>(), It.IsAny<object>()));
 
             var controller = new TestableController()
             {
@@ -1042,8 +1036,7 @@ namespace Microsoft.AspNet.Mvc.Test
         {
             // Arrange
             var mockHttpContext = new Mock<DefaultHttpContext>();
-            mockHttpContext.Setup(x => x.Response.OnResponseCompleted(It.IsAny<Action<object>>(), It.IsAny<object>()))
-                .Verifiable();
+            mockHttpContext.Setup(x => x.Response.OnResponseCompleted(It.IsAny<Action<object>>(), It.IsAny<object>()));
 
             var controller = new TestableController()
             {
