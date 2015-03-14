@@ -17,15 +17,15 @@ namespace Microsoft.AspNet.Mvc
     /// </summary>
     public class CorsAuthorizationFilter : ICorsAuthorizationFilter
     {
-        private readonly CorsPolicy _corsPolicy;
+        private readonly string _corsPolicyName;
 
         /// <summary>
         /// Creates a new instace of <see cref="CorsAuthorizationFilter"/>.
         /// </summary>
-        /// <param name="corsPolicy">The <see cref="CorsPolicy"/> which needs to be applied.</param>
-        public CorsAuthorizationFilter([NotNull] CorsPolicy corsPolicy)
+        /// <param name="policyName">The policy name which needs to be applied.</param>
+        public CorsAuthorizationFilter(string policyName)
         {
-            _corsPolicy = corsPolicy;
+            _corsPolicyName = policyName;
         }
 
         /// <inheritdoc />
@@ -39,7 +39,8 @@ namespace Microsoft.AspNet.Mvc
 
             if (context.HttpContext.Request.Headers.ContainsKey(CorsConstants.Origin))
             {
-                var policy = _corsPolicy;
+                var corsPolicyProvider = context.HttpContext.RequestServices.GetRequiredService<ICorsPolicyProvider>();
+                var policy = await corsPolicyProvider.GetPolicyAsync(context.HttpContext, _corsPolicyName);
                 var corsService = context.HttpContext.RequestServices.GetRequiredService<ICorsService>();
                 var result = corsService.EvaluatePolicy(context.HttpContext, policy);
                 corsService.ApplyResult(result, context.HttpContext.Response);
